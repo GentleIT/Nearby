@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"sync"
 )
 
 /*
@@ -24,31 +23,37 @@ import (
 // не для каждого юзера, а попробовать создать хендлер, который будет обрабатывать всех юзеров и возвращать им через
 // канал данные где они находятся?
 
-func LocateZoneOfUser(users []User, wg *sync.WaitGroup) {
-	for true {
-		for _, v := range users {
-			switch {
-			case v.position.x > 0:
-				// Do something
-			case v.position.x < 0:
-				// Do something
-			default:
-				// Do something
-			}
-			fmt.Println(v)
-		}
-	}
-	wg.Done()
-}
+// func LocateZoneOfUser(users []User, wg *sync.WaitGroup) {
+// 	for true {
+// 		for _, v := range users {
+// 			switch {
+// 			case v.position.x > 0:
+// 				// Do something
+// 			case v.position.x < 0:
+// 				// Do something
+// 			default:
+// 				// Do something
+// 			}
+// 			fmt.Println(v)
+// 		}
+// 	}
+// 	wg.Done()
+// }
 
 func main() {
-	var wg sync.WaitGroup
+	Area := struct {
+		width  int
+		length int
+	}{
+		width:  11,
+		length: 11,
+	}
 
 	user1 := User{
 		name: "Herald",
 		position: Position{
 			x: 2,
-			y: -5,
+			y: 5,
 		},
 	}
 	user2 := User{
@@ -59,13 +64,22 @@ func main() {
 		},
 	}
 
-	users := []User{user1, user2}
-	wg.Add(1)
-	go LocateZoneOfUser(users, &wg)
-	wg.Wait()
+	// users := []User{user1, user2}
+	// wg.Add(1)
+	// go LocateZoneOfUser(users, &wg)
+	// wg.Wait()
 	fmt.Printf("Location of User: x: %d, y: %d\n", user1.position.x, user1.position.y)
 	fmt.Printf("Location of Zero-Point: x: %d, y: %d\n", user2.position.x, user2.position.y)
 	fmt.Println("Result:")
 	fmt.Printf("Distance from zero-point: %v\n", CalculateDistance(&user1, &user2))
-	fmt.Printf("Direction to reach zero-point: %v\n", CalculateDirection(&user1, &user2))
+	fmt.Printf("In which direction located: %v\n", CalculateDirection(&user1, &user2))
+
+	a := "1ab4dcc84"
+	b := "1ab4dcc84fdgdfgr"
+	c := "1ab4ddc8"
+
+	fmt.Println(a, b, CheckSimilarity(a, b))
+	fmt.Println(b, c, CheckSimilarity(b, c))
+
+	Hash(&user1, Area.width, Area.length)
 }

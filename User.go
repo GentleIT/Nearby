@@ -8,8 +8,8 @@ type Position struct {
 }
 
 type Post struct {
-	id int8
-	position Position
+	id            int8
+	position      Position
 	usersAttached []User // Здесь список юзеров которые смогут увидеть экземпляр поста
 }
 
@@ -30,23 +30,22 @@ func CalculateDistance(fromUser *User, toUser *User) float64 {
 	return math.Floor(distance*100) / 100 // Округляю в меньшюю сторону и убераю лишние цифры после запятой. Правда я еще не понял как оно убрало
 }
 
-func CalculateDirection(fromUser *User, toUser *User) string {
+func CalculateDirection(fromUser *User, toUser *User) string { // Перепишу - вернет сторону в которой находится пользователь
 	direction := ""
 
 	xPos := fromUser.position.x - toUser.position.x
 	yPos := fromUser.position.y - toUser.position.y
 
-	if xPos < 0 { // Если значения меньше нуля, то он слева: нужно идти вправо для достижения цели (zero-point)
-		direction += "right "
-	} else if xPos > 0 { // Если значение больше нуля, то он справа, нужно идти влево
+	if xPos < 0 { // Старое: Если значения меньше нуля, то он слева: нужно идти вправо для достижения цели (zero-point)
 		direction += "left "
+	} else if xPos > 0 { // Старое: Если значение больше нуля, то он справа, нужно идти влево
+		direction += "right "
 	}
 
-	if yPos < 0 { // Если значения меньше 0, то он снизу: нужно идти вверх для достижения цели (zero-point)
-		direction += "up "
-	} else if yPos > 0 { // Если значение больше 0, то он сверху: нужно идти вниз
+	if yPos < 0 { // Старое: Если значения меньше 0, то он снизу: нужно идти вверх для достижения цели (zero-point)
 		direction += "down "
+	} else if yPos > 0 { // Старое: Если значение больше 0, то он сверху: нужно идти вниз
+		direction += "up "
 	}
-
 	return direction
 }
