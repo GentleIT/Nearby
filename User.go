@@ -49,3 +49,30 @@ func CalculateDirection(fromUser *User, toUser *User) string { // Перепиш
 	}
 	return direction
 }
+
+func extCalculateDirection(fromX float32, fromY float32, toX float32, toY float32) (string, int8, int8) {
+	direction := ""
+	var directionX int8
+	var directionY int8
+
+	xPos := fromX - toX
+	yPos := fromY - toY
+
+	if xPos < 0 { // Старое: Если значения меньше нуля, то он слева: нужно идти вправо для достижения цели (zero-point)
+		direction += "left "
+		directionX = -1
+
+	} else if xPos > 0 { // Старое: Если значение больше нуля, то он справа, нужно идти влево
+		direction += "right "
+		directionX = 1
+	}
+
+	if yPos < 0 { // Старое: Если значения меньше 0, то он снизу: нужно идти вверх для достижения цели (zero-point)
+		direction += "down "
+		directionY = -1
+	} else if yPos > 0 { // Старое: Если значение больше 0, то он сверху: нужно идти вниз
+		direction += "up "
+		directionY = 1
+	}
+	return direction, directionX, directionY
+}

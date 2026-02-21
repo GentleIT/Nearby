@@ -27,116 +27,191 @@ import (
 // Или же, попробовать всё же сделать алгоритм.
 
 type extPosition struct {
-	x0, x1 int
-	y0, y1 int
+	lenx int
+	leny int
+	midx float32
+	midy float32
 }
 
-func Hash(user *User, areaWidth int, areaLength int) string {
-	notDefined := true
+/*
+	Что делать?:
+		- Прочитать ответ Gemini и разобраться что делать дальше.
+		(Я сколько думал и так часто мимо пропускал мысль что нужно сначала создать новый центр и
+		потом сравнивать со стороны центра. Или я уже кое-как типа сделал это я уже хз. Котелок не хочет варить)
+*/
+
+func Hash(user User, width int, length int) string {
 	hash := ""
 
-	newZeroPoint := User{
-		position: extPosition{
-			x0: 0,
-			x1: areaWidth,
-			y0: 0,
-			y1: areaLength,
-		},
+	area := extPosition{
+		lenx: width,
+		leny: length,
 	}
-	// newZeroPoint.position.x = areaWidth / 2
-	// newZeroPoint.position.y = areaLength / 2
 
-	// А если создать словарь (мапу), куда положу цифры 0-9 и далее буквы алфавита.
-	// А потом просто буду в зависимости от возвращаемого ближайшего i присуждать пустой строке hash индекс
-	// равный ключу в мапе?
-	// Типа, если поделить один квадрат (карту) на 32 квадрта (в котором тоже внутри 32 квадрата),
-	// то каждому будет присужден свой индекс в зависимости от того по какомсу счёту он стоит
-	// Вопрос, а как такое использовать по отношению к координатам?
+	/*
+		! Мне нужно высчитывать новый центр зоны, как в своем подобии GeoHash с реализацией через Z-curve (хотя я сам особо не понимаю этот метод)
+		> Сперва будет карта длиной 10 на 10, далее нужно поделить центр на 2, дабы, карта была разделена на 4 участка.
+		> Далее, через готовую функцию проверяю местоположение и, например, если будет слева-снизу, то снова делю на 2.
+		> Думаю даже добавить float значения для длины и центра. Юзеры(Посты их) будут то на определенных точках только.
+	*/
+	notDefined := true
+	area.midx = float32(area.lenx) / 2
+	area.midy = float32(area.leny) / 2
+	iterationValueX := float32(area.lenx)
+	iterationValueY := float32(area.leny)
+	var i float32 = 1
 
 	for notDefined {
-		// Ниже не сработает просто из за того что оно может считать положительные x и y. То есть считывают ток право-верхнюю сторону.
-		// Решит наверн если я откажусь от минусов и остановлюсь только на право-верхней стороне по всему пространству.
-		newZeroPoint.position.x -= newZeroPoint.position.x / 2
-		newZeroPoint.position.y -= newZeroPoint.position.y / 2
-		switch CalculateDirection(user, &newZeroPoint) {
-		case "left up ":
-			hash += "a"
-		case "right up ":
-			hash += "b"
-		case "left down ":
-			hash += "c"
-		case "right down ":
-			hash += "d"
-		case "left ":
-			hash += "<"
-		case "right ":
-			hash += ">"
-		case "up ":
-			hash += "//"
-		case "down ":
-			hash += "()"
+		i++
+		iterationValueX /= 2 * i
+		iterationValueY /= 2 * i
+
+		// Я уже почти закончил с этой функцией
+		// Осталось только удалить штуку ниже, переписать CalculateDirection(), изменить возвращаемые значения
+		// Дабы не сравнивала со строками (нагружает). Ну и в конце все же вернуть себе хэш.
+
+		_, x, y := extCalculateDirection(area.midx, area.midy, float32(user.position.x), float32(user.position.y))
+		switch x {
+		case -1:
+			//left
+			area.midx -= iterationValueX
+			hash += "left"
+		case 1:
+			//right
+			area.midx += iterationValueX
+			hash += "right"
 		}
-		nearX := newZeroPoint.position.x - user.position.x // 0 -
-		nearY := newZeroPoint.position.y - user.position.y
-		if nearX < 2 && nearY < 2 { // Если находится в пределах 2-ух точек
-			fmt.Println("Finished: ", areaWidth, areaLength, user.position, Normalize(hash))
-			notDefined = false
+
+		switch y {
+		case -1:
+			//down
+			area.midy -= iterationValueY
+			hash += "down"
+		case 1:
+			//up
+			area.midy += iterationValueY
+			hash += "right"
+		}
+
+		if i > 3 {
 			break
 		}
-		fmt.Println("Ingoing: ", Normalize(hash), newZeroPoint.position.x, newZeroPoint.position.y)
 	}
 	return hash
 }
 
-func OldHash(user *User) string {
-	// Здесь я просто обновляю новосозданный zero-point пока он не будет максимально близок к Юзеру.
+// // В этой функции я хочу хэшировать текущую координату юзера в зависимости от итераций в каких квадратах он находится.
+// func Old2Hash(user *User, areaWidth int, areaLength int) string {
+// 	notDefined := true
+// 	hash := ""
 
-	newX := 0
-	newY := 0
-	notDefined := true
+// 	newZeroPoint := extPosition{
+// 		x0: 0,
+// 		x1: areaWidth, // Они показывают 1. Всю длину линии, 2. Конечное число в конце
+// 		y0: 0,
+// 		y1: areaLength,
+// 		// Возможно нужно будет разделить логику и добавить ниже два значения, max длину x и y
+// 	}
+// 	// А можно ли поделить всё так, чтоб юзеры могли быть ток на цельных x и y (int), а границы шли по (float) числам?
 
-	for notDefined {
-		zeroPoint := User{
-			position: Position{
-				x: newX,
-				y: newY,
-			},
-		}
-		switch CalculateDirection(user, &zeroPoint) {
-		case "right up ":
-			newX += 1 * 2
-			newY += 1 * 2
-		case "left up ":
-			newX += -(1 * 2)
-			newY += 1 * 2
-		case "right down ":
-			newX += 1 * 2
-			newY += -(1 * 2)
-		case "left down ":
-			newX += -(1 * 2)
-			newY += -(1 * 2)
-		case "right ":
-			newX += (1 * 2)
-		case "left ":
-			newX += -(1 * 2)
-		case "up ":
-			newY += (1 * 2)
-		case "down ":
-			newY += -(1 * 2)
-		}
-		fmt.Println(newX, newY, user.position)
+// 	// Здесь уже определяю хэш в зависимости в какой стороне находится координаты юзера.
+// 	for notDefined {
+// 		switch extCalculateDirection(user, newZeroPoint.x1, newZeroPoint.y1) {
+// 		case "left up ": // (каждая помеченная сторона даёт буквы хэшу)
+// 			hash += "a"
+// 			newZeroPoint.y0 += newZeroPoint.y1 / 2
+// 			newZeroPoint.x1 /= 2
+// 			fmt.Println("left up")
+// 		case "right up ":
+// 			hash += "b"
+// 			newZeroPoint.x0 += newZeroPoint.x1 / 2
+// 			newZeroPoint.y0 += newZeroPoint.y1 / 2
+// 			fmt.Println("right up")
+// 		case "left down ":
+// 			hash += "c"
+// 			newZeroPoint.x1 -= newZeroPoint.x1 / 2
+// 			newZeroPoint.y1 -= newZeroPoint.y1 / 2
+// 			fmt.Println("left down")
+// 		case "right down ":
+// 			hash += "d"
+// 			newZeroPoint.x0 += newZeroPoint.x1 / 2
+// 			newZeroPoint.y1 -= newZeroPoint.y1 / 2
+// 			fmt.Println("right down")
+// 		case "left ":
+// 			newZeroPoint.x1 -= newZeroPoint.x1 / 2
+// 			hash += "<"
+// 			fmt.Println("left")
+// 		case "right ":
+// 			newZeroPoint.x0 += newZeroPoint.x1 / 2
+// 			hash += ">"
+// 			fmt.Println("right")
+// 		case "up ":
+// 			newZeroPoint.y0 += newZeroPoint.x1 / 2
+// 			hash += "//"
+// 			fmt.Println("up")
+// 		case "down ":
+// 			newZeroPoint.y1 -= newZeroPoint.y1 / 2
+// 			hash += "()"
+// 			fmt.Println("down")
+// 		}
 
-		// Нижний код закончил цикл на моменте когда x и y zeroPoint стал максимально близко к юзерским координатам.
-		// Зачем мне это? Если так подумать то я просто приблизил zeroPoint к юзеру. Но не определил для него ходы хеша.
-		nearX := newX - user.position.x
-		nearY := newY - user.position.y
-		if nearX < 2 && nearY < 2 { // Если находится в пределах 2-ух точек
-			fmt.Println("Finished: ", newX, newY, user.position)
-			break
-		}
-	}
-	return "hash"
-}
+// 		fmt.Println(newZeroPoint)
+// 		if newZeroPoint.y0 > 10 {
+// 			break
+// 		}
+// 	}
+// 	return hash
+// }
+
+// func OldHash(user *User) string {
+// 	// Здесь я просто обновляю новосозданный zero-point пока он не будет максимально близок к Юзеру.
+
+// 	newX := 0
+// 	newY := 0
+// 	notDefined := true
+
+// 	for notDefined {
+// 		zeroPoint := User{
+// 			position: Position{
+// 				x: newX,
+// 				y: newY,
+// 			},
+// 		}
+// 		switch CalculateDirection(user, &zeroPoint) {
+// 		case "right up ":
+// 			newX += 1 * 2
+// 			newY += 1 * 2
+// 		case "left up ":
+// 			newX += -(1 * 2)
+// 			newY += 1 * 2
+// 		case "right down ":
+// 			newX += 1 * 2
+// 			newY += -(1 * 2)
+// 		case "left down ":
+// 			newX += -(1 * 2)
+// 			newY += -(1 * 2)
+// 		case "right ":
+// 			newX += (1 * 2)
+// 		case "left ":
+// 			newX += -(1 * 2)
+// 		case "up ":
+// 			newY += (1 * 2)
+// 		case "down ":
+// 			newY += -(1 * 2)
+// 		}
+// 		fmt.Println(newX, newY, user.position)
+
+// 		// Нижний код закончил цикл на моменте когда x и y zeroPoint стал максимально близко к юзерским координатам.
+// 		// Зачем мне это? Если так подумать то я просто приблизил zeroPoint к юзеру. Но не определил для него ходы хеша.
+// 		nearX := newX - user.position.x
+// 		nearY := newY - user.position.y
+// 		if nearX < 2 && nearY < 2 { // Если находится в пределах 2-ух точек
+// 			fmt.Println("Finished: ", newX, newY, user.position)
+// 			break
+// 		}
+// 	}
+// 	return "hash"
+// }
 
 func CheckSimilarity(a string, b string) string {
 	list := []string{a, b}
