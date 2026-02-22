@@ -1,0 +1,464 @@
+файл - Geo.go
+
+package main
+
+import (
+	"fmt"
+)
+
+/*
+Теперь что делать?
+
+Есть:
+  - Возвращение одинаковых символов начиная с первой до первой несостыковки. (Уже проверка схожести геохешей)
+    = Нормализация строки под 9-ти символьный формат.
+  - Проверка одинаковы ли два геохеша.
+
+Теперь:
+  - Попробовать создать геохеш с данным о координатах (x и y (которые замена ширине и долготе))
+
+Для этого:
+  - Расширить примеры, добавив возможности минусовых x и y
+  - Посмотреть или придумать как имея только 2 значения понять в каком геохеше он находится.
+
+- Ну и в будущем было бы классно попробовать визуализировать их.
+*/
+
+// Либо превращать координаты в хэши и тупа класть их в хэш-таблицу (мапу) и просто там проверять
+// для поста кто находится в той же таблице, где и юзер, дабы его могли увидеть.
+// Или же, попробовать всё же сделать алгоритм.
+
+type extPosition struct {
+	lenx int
+	leny int
+	midx float32
+	midy float32
+}
+
+/*
+	Что делать?:
+		- Прочитать ответ Gemini и разобраться что делать дальше.
+		(Я сколько думал и так часто мимо пропускал мысль что нужно сначала создать новый центр и
+		потом сравнивать со стороны центра. Или я уже кое-как типа сделал это я уже хз. Котелок не хочет варить)
+*/
+
+func Hash(user User, width int, length int) string {
+	hash := ""
+
+	area := extPosition{
+		lenx: width,
+		leny: length,
+	}
+
+	/*
+		! Мне нужно высчитывать новый центр зоны, как в своем подобии GeoHash с реализацией через Z-curve (хотя я сам особо не понимаю этот метод)
+		> Сперва будет карта длиной 10 на 10, далее нужно поделить центр на 2, дабы, карта была разделена на 4 участка.
+		> Далее, через готовую функцию проверяю местоположение и, например, если будет слева-снизу, то снова делю на 2.
+		> Думаю даже добавить float значения для длины и центра. Юзеры(Посты их) будут то на определенных точках только.
+	*/
+	notDefined := true
+	area.midx = float32(area.lenx) / 2
+	area.midy = float32(area.leny) / 2
+	iterationValueX := float32(area.lenx)
+	iterationValueY := float32(area.leny)
+	var i float32 = 1
+
+	for notDefined {
+		i++
+		iterationValueX /= 2 * i
+		iterationValueY /= 2 * i
+
+		// Я уже почти закончил с этой функцией
+		// Осталось только удалить штуку ниже, переписать CalculateDirection(), изменить возвращаемые значения
+		// Дабы не сравнивала со строками (нагружает). Ну и в конце все же вернуть себе хэш.
+
+		_, x, y := extCalculateDirection(area.midx, area.midy, float32(user.position.x), float32(user.position.y))
+		switch x {
+		case -1:
+			//left
+			area.midx -= iterationValueX
+			hash += "left"
+		case 1:
+			//right
+			area.midx += iterationValueX
+			hash += "right"
+		}
+
+		switch y {
+		case -1:
+			//down
+			area.midy -= iterationValueY
+			hash += "down"
+		case 1:
+			//up
+			area.midy += iterationValueY
+			hash += "right"
+		}
+
+		if i > 3 {
+			break
+		}
+	}
+	return hash
+}
+
+// // В этой функции я хочу хэшировать текущую координату юзера в зависимости от итераций в каких квадратах он находится.
+// func Old2Hash(user *User, areaWidth int, areaLength int) string {
+// 	notDefined := true
+// 	hash := ""
+
+// 	newZeroPoint := extPosition{
+// 		x0: 0,
+// 		x1: areaWidth, // Они показывают 1. Всю длину линии, 2. Конечное число в конце
+// 		y0: 0,
+// 		y1: areaLength,
+// 		// Возможно нужно будет разделить логику и добавить ниже два значения, max длину x и y
+// 	}
+// 	// А можно ли поделить всё так, чтоб юзеры могли быть ток на цельных x и y (int), а границы шли по (float) числам?
+
+// 	// Здесь уже определяю хэш в зависимости в какой стороне находится координаты юзера.
+// 	for notDefined {
+// 		switch extCalculateDirection(user, newZeroPoint.x1, newZeroPoint.y1) {
+// 		case "left up ": // (каждая помеченная сторона даёт буквы хэшу)
+// 			hash += "a"
+// 			newZeroPoint.y0 += newZeroPoint.y1 / 2
+// 			newZeroPoint.x1 /= 2
+// 			fmt.Println("left up")
+// 		case "right up ":
+// 			hash += "b"
+// 			newZeroPoint.x0 += newZeroPoint.x1 / 2
+// 			newZeroPoint.y0 += newZeroPoint.y1 / 2
+// 			fmt.Println("right up")
+// 		case "left down ":
+// 			hash += "c"
+// 			newZeroPoint.x1 -= newZeroPoint.x1 / 2
+// 			newZeroPoint.y1 -= newZeroPoint.y1 / 2
+// 			fmt.Println("left down")
+// 		case "right down ":
+// 			hash += "d"
+// 			newZeroPoint.x0 += newZeroPoint.x1 / 2
+// 			newZeroPoint.y1 -= newZeroPoint.y1 / 2
+// 			fmt.Println("right down")
+// 		case "left ":
+// 			newZeroPoint.x1 -= newZeroPoint.x1 / 2
+// 			hash += "<"
+// 			fmt.Println("left")
+// 		case "right ":
+// 			newZeroPoint.x0 += newZeroPoint.x1 / 2
+// 			hash += ">"
+// 			fmt.Println("right")
+// 		case "up ":
+// 			newZeroPoint.y0 += newZeroPoint.x1 / 2
+// 			hash += "//"
+// 			fmt.Println("up")
+// 		case "down ":
+// 			newZeroPoint.y1 -= newZeroPoint.y1 / 2
+// 			hash += "()"
+// 			fmt.Println("down")
+// 		}
+
+// 		fmt.Println(newZeroPoint)
+// 		if newZeroPoint.y0 > 10 {
+// 			break
+// 		}
+// 	}
+// 	return hash
+// }
+
+// func OldHash(user *User) string {
+// 	// Здесь я просто обновляю новосозданный zero-point пока он не будет максимально близок к Юзеру.
+
+// 	newX := 0
+// 	newY := 0
+// 	notDefined := true
+
+// 	for notDefined {
+// 		zeroPoint := User{
+// 			position: Position{
+// 				x: newX,
+// 				y: newY,
+// 			},
+// 		}
+// 		switch CalculateDirection(user, &zeroPoint) {
+// 		case "right up ":
+// 			newX += 1 * 2
+// 			newY += 1 * 2
+// 		case "left up ":
+// 			newX += -(1 * 2)
+// 			newY += 1 * 2
+// 		case "right down ":
+// 			newX += 1 * 2
+// 			newY += -(1 * 2)
+// 		case "left down ":
+// 			newX += -(1 * 2)
+// 			newY += -(1 * 2)
+// 		case "right ":
+// 			newX += (1 * 2)
+// 		case "left ":
+// 			newX += -(1 * 2)
+// 		case "up ":
+// 			newY += (1 * 2)
+// 		case "down ":
+// 			newY += -(1 * 2)
+// 		}
+// 		fmt.Println(newX, newY, user.position)
+
+// 		// Нижний код закончил цикл на моменте когда x и y zeroPoint стал максимально близко к юзерским координатам.
+// 		// Зачем мне это? Если так подумать то я просто приблизил zeroPoint к юзеру. Но не определил для него ходы хеша.
+// 		nearX := newX - user.position.x
+// 		nearY := newY - user.position.y
+// 		if nearX < 2 && nearY < 2 { // Если находится в пределах 2-ух точек
+// 			fmt.Println("Finished: ", newX, newY, user.position)
+// 			break
+// 		}
+// 	}
+// 	return "hash"
+// }
+
+func CheckSimilarity(a string, b string) string {
+	list := []string{a, b}
+	for i, v := range list {
+		if len(v) != 9 {
+			list[i] = Normalize(v)
+		}
+	}
+	// Нужно сделать 9 итераций и проверить схожи ли цифры. Вернуть строку с одинаковыми значениями. Если первый не одинаков то всё.
+	// Хотя было бы интересно попробовать сделать задачку где нужно вернуть строку только с теми символами, которые были одинаковы. Мне кажется это не так сложно. Нужно тупо result += v (v - это символы которые совпали начиная с первого. Потом еще вернуть индексы (итерации) которые совпали)
+	var result string
+	for i := 0; i < len(list[0]); i++ { // Насчёт проверки длинны через ток одно значение не сильно уверен, но прикол в том что я уже нормализовал их под формат 9-ти символов, так что разницы нет.
+		if list[0][i] == list[1][i] {
+			result += string(list[0][i])
+		} else {
+			break
+		}
+	}
+	return result
+}
+
+func Normalize(s string) string { // Работает неплохо. Нормализовано нормально
+	// fmt.Println("Working with", s)
+	notInForm := true
+	switch {
+	case len(s) > 9:
+		// i := 0
+		for notInForm {
+			s = s[0 : len(s)-1]
+			if len(s) == 9 {
+				notInForm = false
+			}
+			// i++
+			// fmt.Println(i)
+		}
+	case len(s) < 9:
+		for notInForm {
+			s += "_"
+			if len(s) == 9 {
+				notInForm = false
+			}
+		}
+	}
+	// fmt.Println(s)
+	return s
+}
+
+// Также попробовать создать функцию хеширования под формат 9-символов в строке (Мб тогда многое сверху станет не нужно)
+
+// Говнокод который еще свет не ведал. Шучу. Хочу переписать его без повторений и лишних объявлений.
+func saySimilar(a *string, b *string) bool {
+	var longHash string
+	var shortHash string
+	if len(*a) > len(*b) {
+		longHash = *a
+		shortHash = *b
+	} else {
+		longHash = *b
+		shortHash = *a
+	}
+
+	ind := len(shortHash)
+	count := 0
+	for i := range shortHash {
+		fmt.Println(i)
+
+		if longHash[i] == shortHash[i] {
+			count += 1
+			continue
+		}
+	}
+	if count == ind {
+		return true
+	} else {
+		return false
+	}
+}
+
+
+User.go
+
+package main
+
+import "math"
+
+type Position struct {
+	x int
+	y int
+}
+
+type Post struct {
+	id            int8
+	position      Position
+	usersAttached []User // Здесь список юзеров которые смогут увидеть экземпляр поста
+}
+
+type User struct {
+	name     string
+	position Position
+	// postThatCanSee []Post // Список посток которые юзер увидит в своей ленте если он был в 2-ух км от момента поста.
+}
+
+// Можно ли сделать так, дабы ко второму аргументу он мог принимать или User или Position? Полиморфизм?
+// Можно если структура будет имплементировать какой-нибудь метод.
+// Можно переделать CalDist и CalDir под методы пренадлежащие User и переназвать методы как (fromUser *User) CalDistTo / CalDirTo
+func CalculateDistance(fromUser *User, toUser *User) float64 {
+	resX := fromUser.position.x - toUser.position.x
+	resY := fromUser.position.y - toUser.position.y
+
+	distance := math.Sqrt(math.Pow(float64(resX), 2) + math.Pow(float64(resY), 2))
+	return math.Floor(distance*100) / 100 // Округляю в меньшюю сторону и убераю лишние цифры после запятой. Правда я еще не понял как оно убрало
+}
+
+func CalculateDirection(fromUser *User, toUser *User) string { // Перепишу - вернет сторону в которой находится пользователь
+	direction := ""
+
+	xPos := fromUser.position.x - toUser.position.x
+	yPos := fromUser.position.y - toUser.position.y
+
+	if xPos < 0 { // Старое: Если значения меньше нуля, то он слева: нужно идти вправо для достижения цели (zero-point)
+		direction += "left "
+	} else if xPos > 0 { // Старое: Если значение больше нуля, то он справа, нужно идти влево
+		direction += "right "
+	}
+
+	if yPos < 0 { // Старое: Если значения меньше 0, то он снизу: нужно идти вверх для достижения цели (zero-point)
+		direction += "down "
+	} else if yPos > 0 { // Старое: Если значение больше 0, то он сверху: нужно идти вниз
+		direction += "up "
+	}
+	return direction
+}
+
+func extCalculateDirection(fromX float32, fromY float32, toX float32, toY float32) (string, int8, int8) {
+	direction := ""
+	var directionX int8
+	var directionY int8
+
+	xPos := fromX - toX
+	yPos := fromY - toY
+
+	if xPos < 0 { // Старое: Если значения меньше нуля, то он слева: нужно идти вправо для достижения цели (zero-point)
+		direction += "left "
+		directionX = -1
+
+	} else if xPos > 0 { // Старое: Если значение больше нуля, то он справа, нужно идти влево
+		direction += "right "
+		directionX = 1
+	}
+
+	if yPos < 0 { // Старое: Если значения меньше 0, то он снизу: нужно идти вверх для достижения цели (zero-point)
+		direction += "down "
+		directionY = -1
+	} else if yPos > 0 { // Старое: Если значение больше 0, то он сверху: нужно идти вниз
+		direction += "up "
+		directionY = 1
+	}
+	return direction, directionX, directionY
+}
+
+
+main.go
+
+package main
+
+import (
+	"fmt"
+)
+
+/*
+	Я хотел попробовать в слайс создать сотню юзеров и попробовать для каждого определить расстояние до следующего.
+	Их первоначальные позиции определялись бы рандомно.
+
+	Есть ли смысл сейчас пробовать это применять?
+	- Попробовать создать способ определения в реальном времени в каком квадрате находится User.
+	  Либо сделать это и попробовать сделать через while и switch case либо же как-то по другому.
+	- Но вообще я бы хотел создать всё же способ визуализации этих данных каким-нибудь способом.
+	  Пора ли? Но пока еще несколько функций на беке не было создано
+	- Что если создать систему квадратов и в этих квадратах юзер сможет открыть и прочитать посты которые написали
+	  Другие пользователи. Только как это все создать?
+
+	= Реализации системы зон в которой юзер находится и которая будет проверяться через while()
+*/
+
+// Как вообще оно будет само запускаться и всегда смотреть в какой зоне находиться юзер? Есть ли возможно создавать это
+// не для каждого юзера, а попробовать создать хендлер, который будет обрабатывать всех юзеров и возвращать им через
+// канал данные где они находятся?
+
+// func LocateZoneOfUser(users []User, wg *sync.WaitGroup) {
+// 	for true {
+// 		for _, v := range users {
+// 			switch {
+// 			case v.position.x > 0:
+// 				// Do something
+// 			case v.position.x < 0:
+// 				// Do something
+// 			default:
+// 				// Do something
+// 			}
+// 			fmt.Println(v)
+// 		}
+// 	}
+// 	wg.Done()
+// }
+
+func main() {
+	Area := struct {
+		width  int
+		length int
+	}{
+		width:  16,
+		length: 16,
+	}
+
+	user1 := User{
+		name: "Herald",
+		position: Position{
+			x: 15,
+			y: 15,
+		},
+	}
+	user2 := User{
+		name: "Zero-Point",
+		position: Position{
+			x: 0,
+			y: 0,
+		},
+	}
+
+	// users := []User{user1, user2}
+	// wg.Add(1)
+	// go LocateZoneOfUser(users, &wg)
+	// wg.Wait()
+	fmt.Printf("Location of User: x: %d, y: %d\n", user1.position.x, user1.position.y)
+	fmt.Printf("Location of Zero-Point: x: %d, y: %d\n", user2.position.x, user2.position.y)
+	fmt.Println("Result:")
+	fmt.Printf("Distance from zero-point: %v\n", CalculateDistance(&user1, &user2))
+	fmt.Printf("In which direction located: %v\n", CalculateDirection(&user1, &user2))
+
+	a := "1ab4dcc84"
+	b := "1ab4dcc84fdgdfgr"
+	c := "1ab4ddc8"
+
+	fmt.Println(a, b, CheckSimilarity(a, b))
+	fmt.Println(b, c, CheckSimilarity(b, c))
+
+	fmt.Println(Hash(user1, Area.width, Area.length))
+}

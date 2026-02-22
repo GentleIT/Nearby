@@ -52,8 +52,8 @@ func main() {
 	user1 := User{
 		name: "Herald",
 		position: Position{
-			x: 15,
-			y: 15,
+			x: 5,
+			y: 7,
 		},
 	}
 	user2 := User{
@@ -81,5 +81,5 @@ func main() {
 	fmt.Println(a, b, CheckSimilarity(a, b))
 	fmt.Println(b, c, CheckSimilarity(b, c))
 
-	fmt.Println(Hash(user1, Area.width, Area.length))
+	fmt.Println("\n", Hash(user1, Area.width, Area.length))
 }

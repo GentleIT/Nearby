@@ -55,43 +55,49 @@ func Hash(user User, width int, length int) string {
 		> Думаю даже добавить float значения для длины и центра. Юзеры(Посты их) будут то на определенных точках только.
 	*/
 	notDefined := true
-	area.midx = float32(area.lenx) / 2
-	area.midy = float32(area.leny) / 2
-	iterationValueX := float32(area.lenx)
-	iterationValueY := float32(area.leny)
+	area.midx = float32(area.lenx) / 2        // divided to center
+	area.midy = float32(area.leny) / 2        // divided to center
+	iterationValueX := float32(area.lenx) / 2 // divided to optimize algoritm
+	iterationValueY := float32(area.leny) / 2 // divided to optimize algoritm
 	var i float32 = 1
 
 	for notDefined {
-		i++
-		iterationValueX /= 2 * i
-		iterationValueY /= 2 * i
-
-		// Я уже почти закончил с этой функцией
-		// Осталось только удалить штуку ниже, переписать CalculateDirection(), изменить возвращаемые значения
-		// Дабы не сравнивала со строками (нагружает). Ну и в конце все же вернуть себе хэш.
-
-		_, x, y := extCalculateDirection(area.midx, area.midy, float32(user.position.x), float32(user.position.y))
-		switch x {
-		case -1:
-			//left
+		fmt.Println(i, area.midx, area.midy)
+		iterationValueX /= 2
+		iterationValueY /= 2
+		fmt.Println("Iteration value:", iterationValueX, iterationValueY)
+		switch extCalculateDirection(float32(user.position.x), float32(user.position.y), area.midx, area.midy) {
+		case "left up ": // (каждая помеченная сторона даёт буквы хэшу)
+			hash += "a"
 			area.midx -= iterationValueX
-			hash += "left"
-		case 1:
-			//right
+			area.midy += iterationValueY
+		case "right up ":
+			hash += "b"
 			area.midx += iterationValueX
-			hash += "right"
+			area.midy += iterationValueY
+		case "left down ":
+			hash += "c"
+			area.midx -= iterationValueX
+			area.midy -= iterationValueY
+		case "right down ":
+			hash += "d"
+			area.midx += iterationValueX
+			area.midy -= iterationValueY
+		case "left ":
+			hash += "<"
+			area.midx -= iterationValueX
+		case "right ":
+			hash += ">"
+			area.midx += iterationValueX
+		case "up ":
+			hash += "//"
+			area.midy += iterationValueY
+		case "down ":
+			hash += "()"
+			area.midy -= iterationValueY
 		}
 
-		switch y {
-		case -1:
-			//down
-			area.midy -= iterationValueY
-			hash += "down"
-		case 1:
-			//up
-			area.midy += iterationValueY
-			hash += "right"
-		}
+		i++
 
 		if i > 3 {
 			break
@@ -99,6 +105,45 @@ func Hash(user User, width int, length int) string {
 	}
 	return hash
 }
+
+// 	for notDefined {
+// 		i++
+// 		iterationValueX /= 2 * i
+// 		iterationValueY /= 2 * i
+
+// 		// Я уже почти закончил с этой функцией
+// 		// Осталось только удалить штуку ниже, переписать CalculateDirection(), изменить возвращаемые значения
+// 		// Дабы не сравнивала со строками (нагружает). Ну и в конце все же вернуть себе хэш.
+
+// 		_, x, y := extCalculateDirection(float32(user.position.x), float32(user.position.y), area.midx, area.midy)
+// 		switch x {
+// 		case -1:
+// 			//left
+// 			area.midx -= iterationValueX
+// 			hash += "left"
+// 		case 1:
+// 			//right
+// 			area.midx += iterationValueX
+// 			hash += "right"
+// 		}
+
+// 		switch y {
+// 		case -1:
+// 			//down
+// 			area.midy -= iterationValueY
+// 			hash += "down"
+// 		case 1:
+// 			//up
+// 			area.midy += iterationValueY
+// 			hash += "up"
+// 		}
+
+// 		if i > 3 {
+// 			break
+// 		}
+// 	}
+// 	return hash
+// }
 
 // // В этой функции я хочу хэшировать текущую координату юзера в зависимости от итераций в каких квадратах он находится.
 // func Old2Hash(user *User, areaWidth int, areaLength int) string {
@@ -115,45 +160,6 @@ func Hash(user User, width int, length int) string {
 // 	// А можно ли поделить всё так, чтоб юзеры могли быть ток на цельных x и y (int), а границы шли по (float) числам?
 
 // 	// Здесь уже определяю хэш в зависимости в какой стороне находится координаты юзера.
-// 	for notDefined {
-// 		switch extCalculateDirection(user, newZeroPoint.x1, newZeroPoint.y1) {
-// 		case "left up ": // (каждая помеченная сторона даёт буквы хэшу)
-// 			hash += "a"
-// 			newZeroPoint.y0 += newZeroPoint.y1 / 2
-// 			newZeroPoint.x1 /= 2
-// 			fmt.Println("left up")
-// 		case "right up ":
-// 			hash += "b"
-// 			newZeroPoint.x0 += newZeroPoint.x1 / 2
-// 			newZeroPoint.y0 += newZeroPoint.y1 / 2
-// 			fmt.Println("right up")
-// 		case "left down ":
-// 			hash += "c"
-// 			newZeroPoint.x1 -= newZeroPoint.x1 / 2
-// 			newZeroPoint.y1 -= newZeroPoint.y1 / 2
-// 			fmt.Println("left down")
-// 		case "right down ":
-// 			hash += "d"
-// 			newZeroPoint.x0 += newZeroPoint.x1 / 2
-// 			newZeroPoint.y1 -= newZeroPoint.y1 / 2
-// 			fmt.Println("right down")
-// 		case "left ":
-// 			newZeroPoint.x1 -= newZeroPoint.x1 / 2
-// 			hash += "<"
-// 			fmt.Println("left")
-// 		case "right ":
-// 			newZeroPoint.x0 += newZeroPoint.x1 / 2
-// 			hash += ">"
-// 			fmt.Println("right")
-// 		case "up ":
-// 			newZeroPoint.y0 += newZeroPoint.x1 / 2
-// 			hash += "//"
-// 			fmt.Println("up")
-// 		case "down ":
-// 			newZeroPoint.y1 -= newZeroPoint.y1 / 2
-// 			hash += "()"
-// 			fmt.Println("down")
-// 		}
 
 // 		fmt.Println(newZeroPoint)
 // 		if newZeroPoint.y0 > 10 {
