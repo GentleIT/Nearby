@@ -72,7 +72,7 @@ func main() {
 	fmt.Printf("Location of Zero-Point: x: %d, y: %d\n", user2.position.x, user2.position.y)
 	fmt.Println("Result:")
 	fmt.Printf("Distance from zero-point: %v\n", CalculateDistance(&user1, &user2))
-	fmt.Printf("In which direction located: %v\n", CalculateDirection(&user1, &user2))
+	// fmt.Printf("In which direction located: %v\n", CalculateDirection(&user1, &user2))
 
 	a := "1ab4dcc84"
 	b := "1ab4dcc84fdgdfgr"
@@ -81,5 +81,5 @@ func main() {
 	fmt.Println(a, b, CheckSimilarity(a, b))
 	fmt.Println(b, c, CheckSimilarity(b, c))
 
-	fmt.Println("\n", Hash(user1, Area.width, Area.length, 3))
+	fmt.Println("\n", Hash(&user1, Area.width, Area.length, 3))
 }

@@ -40,7 +40,12 @@ const (
 	downRight  = "d"
 )
 
-func Hash(user User, width, length int, precision int) string {
+// Функция поиска пути и превращения её в строку по котороу можно будет находить людей в близости.
+/*
+	Над поиском алгоритма (продумыванием и созданием) а также имплементацией её с абстрактных ходов
+	работал дня 3-4 мне кажется.
+*/
+func Hash(user *User, width, length int, precision int) string {
 	hash := ""
 
 	midx := width / 2 // 8 8
@@ -76,74 +81,6 @@ func Hash(user User, width, length int, precision int) string {
 			midy -= stepY
 		}
 	}
-
-	return hash
-}
-
-type extPosition struct {
-	lenx int
-	leny int
-	midx float32
-	midy float32
-}
-
-func OldHash(user User, width int, length int) string {
-	hash := ""
-
-	area := extPosition{
-		lenx: width,
-		leny: length,
-	}
-
-	notDefined := true
-	area.midx = float32(area.lenx) / 2        // divided to center
-	area.midy = float32(area.leny) / 2        // divided to center
-	iterationValueX := float32(area.lenx) / 2 // divided to optimize algoritm
-	iterationValueY := float32(area.leny) / 2 // divided to optimize algoritm
-	var i float32 = 1
-
-	for notDefined {
-		fmt.Println(i, area.midx, area.midy)
-		iterationValueX /= 2
-		iterationValueY /= 2
-		fmt.Println("Iteration value:", iterationValueX, iterationValueY)
-		switch extCalculateDirection(float32(user.position.x), float32(user.position.y), area.midx, area.midy) {
-		case "left up ": // (каждая помеченная сторона даёт буквы хэшу)
-			hash += "a"
-			area.midx -= iterationValueX
-			area.midy += iterationValueY
-		case "right up ":
-			hash += "b"
-			area.midx += iterationValueX
-			area.midy += iterationValueY
-		case "left down ":
-			hash += "c"
-			area.midx -= iterationValueX
-			area.midy -= iterationValueY
-		case "right down ":
-			hash += "d"
-			area.midx += iterationValueX
-			area.midy -= iterationValueY
-		case "left ":
-			hash += "<"
-			area.midx -= iterationValueX
-		case "right ":
-			hash += ">"
-			area.midx += iterationValueX
-		case "up ":
-			hash += "//"
-			area.midy += iterationValueY
-		case "down ":
-			hash += "()"
-			area.midy -= iterationValueY
-		}
-
-		i++
-
-		if i > 3 {
-			break
-		}
-	}
 	return hash
 }
 
@@ -167,8 +104,7 @@ func CheckSimilarity(a string, b string) string {
 	return result
 }
 
-func Normalize(s string) string { // Работает неплохо. Нормализовано нормально
-	// fmt.Println("Working with", s)
+func Normalize(s string) string {
 	notInForm := true
 	switch {
 	case len(s) > 9:
@@ -189,37 +125,5 @@ func Normalize(s string) string { // Работает неплохо. Норма
 			}
 		}
 	}
-	// fmt.Println(s)
 	return s
-}
-
-// Также попробовать создать функцию хеширования под формат 9-символов в строке (Мб тогда многое сверху станет не нужно)
-
-// Говнокод который еще свет не ведал. Шучу. Хочу переписать его без повторений и лишних объявлений.
-func saySimilar(a *string, b *string) bool {
-	var longHash string
-	var shortHash string
-	if len(*a) > len(*b) {
-		longHash = *a
-		shortHash = *b
-	} else {
-		longHash = *b
-		shortHash = *a
-	}
-
-	ind := len(shortHash)
-	count := 0
-	for i := range shortHash {
-		fmt.Println(i)
-
-		if longHash[i] == shortHash[i] {
-			count += 1
-			continue
-		}
-	}
-	if count == ind {
-		return true
-	} else {
-		return false
-	}
 }
