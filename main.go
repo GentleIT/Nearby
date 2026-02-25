@@ -2,6 +2,9 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"strconv"
+	"time"
 )
 
 /*
@@ -41,6 +44,8 @@ import (
 // }
 
 func main() {
+	timeStart := time.Now()
+
 	Area := struct {
 		width  int
 		length int
@@ -52,8 +57,8 @@ func main() {
 	user1 := User{
 		name: "Herald",
 		position: Position{
-			x: 3,
-			y: 15,
+			x: 16,
+			y: 16,
 		},
 	}
 	user2 := User{
@@ -63,8 +68,9 @@ func main() {
 			y: 0,
 		},
 	}
+	users := []User{user1, user2, User{position: Position{x: 0, y: 8}}, User{position: Position{x: 2, y: 11}}, User{position: Position{x: rand.Intn(16), y: rand.Intn(16)}}}
 
-	// users := []User{user1, user2}
+	// userss := []User{user1, user2}
 	// wg.Add(1)
 	// go LocateZoneOfUser(users, &wg)
 	// wg.Wait()
@@ -81,5 +87,35 @@ func main() {
 	fmt.Println(a, b, CheckSimilarity(a, b))
 	fmt.Println(b, c, CheckSimilarity(b, c))
 
-	fmt.Println("\n", Hash(&user1, Area.width, Area.length, 3))
+	for i, user := range users {
+		fmt.Printf("%v | x: %v, y: %v; hash: %s\n", i+1, user.position.x, user.position.y, HashUser(&user, Area.width, Area.length, 3))
+	}
+
+	// ---
+
+	hashMap := make(map[string][]string)
+
+	for y := range Area.length {
+		for x := range Area.width {
+			// hash := HashCoords(y, x, Area.width, Area.length, 3)
+			hash := HashCoords(y, x, Area.width, Area.length, 3)
+			hashMap[hash] = append(hashMap[hash], strconv.Itoa(x)+"|"+strconv.Itoa(y))
+		}
+	}
+
+	fmt.Println(hashMap, time.Since(timeStart))
+
+	for i, v := range hashMap {
+		fmt.Println(i, "|", v)
+		leftHash v[0] - 1
+		downHash
+		rightHash
+		upHash
+		leftdown
+		leftup
+		rightdown
+		rightup
+
+		// Ну, по опыту я понял что в целом можно не писать условия для каждого соседа
+	}
 }
