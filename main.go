@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"strconv"
-	"time"
 )
 
 /*
@@ -44,7 +42,7 @@ import (
 // }
 
 func main() {
-	timeStart := time.Now()
+	// timeStart := time.Now()
 
 	Area := struct {
 		width  int
@@ -93,29 +91,22 @@ func main() {
 
 	// ---
 
-	hashMap := make(map[string][]string)
-
+	// hashMap := make(map[string][]string)
+	hashMap := make(map[string][][]int)
 	for y := range Area.length {
 		for x := range Area.width {
 			// hash := HashCoords(y, x, Area.width, Area.length, 3)
 			hash := HashCoords(y, x, Area.width, Area.length, 3)
-			hashMap[hash] = append(hashMap[hash], strconv.Itoa(x)+"|"+strconv.Itoa(y))
+			// hashMap[hash] = append(hashMap[hash], strconv.Itoa(x)+"|"+strconv.Itoa(y))
+			hashMap[hash] = append(hashMap[hash], []int{x, y}) // []int{x, y} искал как сделать(сначала в голове далее в инете, нужно было в обсидиане) достаточно долго.
 		}
 	}
 
-	fmt.Println(hashMap, time.Since(timeStart))
-
-	for i, v := range hashMap {
-		fmt.Println(i, "|", v)
-		leftHash v[0] - 1
-		downHash
-		rightHash
-		upHash
-		leftdown
-		leftup
-		rightdown
-		rightup
-
-		// Ну, по опыту я понял что в целом можно не писать условия для каждого соседа
+	for i := 0; i <= 10; i++ {
+		// Поместить список существующих хешей и проверка их.
+		FindNeighborsForHash(hashMap, []int{1, 2, 3})
 	}
+
+	// fmt.Println(hashMap, time.Since(timeStart))
+	// fmt.Println(hashMap, "=======", hashMap["aaa"])
 }

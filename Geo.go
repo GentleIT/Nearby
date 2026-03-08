@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 /*
 Теперь что делать?
 
@@ -131,6 +133,18 @@ func HashCoords(y, x int, width, length int, precision int) string {
 		}
 	}
 	return hash
+}
+
+func FindNeighborsForHash(hashMap map[string][][]int, target []int) []string { // Здесь нужно принять ключ таргетного хеша и чекнуть только его нечетные коорды (справа сверху) (Хотя, в теории всё равно)
+	a := []string{"hello", "world"}
+
+	for k, v := range hashMap {
+		fmt.Println(k, v[0])
+	}
+
+	// keys := make([]string, 0, len(hashMap))
+	// for v := range
+	return a
 }
 
 func CheckSimilarity(a string, b string) string {
