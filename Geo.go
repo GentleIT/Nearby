@@ -48,13 +48,31 @@ func HashCoords(y, x int, width, length int, precision int) string {
 }
 
 func FindNeighborsForHash(hashMap map[string][][]int, target []int) []string { // Здесь нужно принять ключ таргетного хеша и чекнуть только его нечетные коорды (справа сверху) (Хотя, в теории всё равно)
-	a := []string{"hello", "world"}
-
+	list := make(map[string][]string)
 	for k, v := range hashMap {
-		fmt.Println(k, v[0])
-	}
+		for nk, nv := range hashMap {
+			resX := v[0][0] - nv[0][0]
+			resY := v[0][1] - nv[0][1]
 
-	// keys := make([]string, 0, len(hashMap))
-	// for v := range
-	return a
+			res := resX + resY
+
+			if res == 4 || res == 2 || res == 0 || res == -2 || res == -4 { // Здесь что-то не так.
+				list[k] = append(list[k], nk)
+			}
+			// if resX == 2 || resX == -2 {}
+
+			listOfHashes := make([][][]int, 0, 1000)
+			listOfHashes = append(listOfHashes, v)
+			// for k, v := range hashMap {
+			// 	// fmt.Println(k, v[0])
+			// }
+		}
+	}
+	fmt.Println(list)
+	// First Object - ishodnie coordy, dlya kotorih ishu sosedei
+	// Second Object - dannye hashi sosedei, budu brat' pervie cordy from all hashes.
+
+	return []string{"hello", "world"}
 }
+
+// Сначала нужно было бы написать функцию которая бы сортировала мапу и копировала её в отдельный лист.
