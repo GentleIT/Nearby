@@ -1,5 +1,13 @@
 package main
 
+/*
+	TO DO:
+		- Rewrite comments to english.
+		- Make normal Readme file.
+		- Finnish with finding neighbours of hashes.
+		- After that: integrate and save it in db.
+*/
+
 func main() {
 
 	Area := struct {
