@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"time"
+)
+
 /*
 	TO DO:
 		- Rewrite comments to english.
@@ -9,7 +14,7 @@ package main
 */
 
 func main() {
-
+	timeStart := time.Now()
 	Area := struct {
 		width  int
 		length int
@@ -29,8 +34,10 @@ func main() {
 	}
 
 	// Ниже буду получать соседей от хеша и далее помещать это в базу.
-	for i := 0; i <= 10; i++ {
-		// Поместить список существующих хешей и проверка их.
-		FindNeighborsForHash(hashMap, []int{1, 2, 3})
-	}
+	// for i := 0; i <= 10; i++ {
+	// 	// Поместить список существующих хешей и проверка их.
+	// 	FindNeighborsForHash(hashMap, []int{1, 2, 3})
+	// }
+	fmt.Println(HashNeighboursForAll(hashMap))
+	fmt.Println(time.Since(timeStart))
 }

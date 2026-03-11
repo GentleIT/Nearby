@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 const (
 	upperLeft  = "a"
 	upperRight = "b"
@@ -10,7 +8,7 @@ const (
 )
 
 func HashCoords(y, x int, width, length int, precision int) string {
-	hash := ""
+	hash := "" // <-- I can make it array with capacity of 6 or more, depending on precision
 	// Ошибка - стоило полировать и убрать не нужное самому а не проверять
 	// как написать лаконичнееs
 	midx := width / 2 // 8 8
@@ -47,32 +45,52 @@ func HashCoords(y, x int, width, length int, precision int) string {
 	return hash
 }
 
-func FindNeighborsForHash(hashMap map[string][][]int, target []int) []string { // Здесь нужно принять ключ таргетного хеша и чекнуть только его нечетные коорды (справа сверху) (Хотя, в теории всё равно)
-	list := make(map[string][]string)
+// This function should be optimized version for calculating the neighbours of hash (hash of User) without using saved tables.
+func HashNeighboursForAll(hashMap map[string][][]int) []string {
+	resMap := make(map[string][]string)
+	hashList := make([]string, 0, len(hashMap)) // <-- 1. Should I change the data type from []string to f.e. [][]string? To put inside values of hash keys 
+	for k, _ := range hashMap {																				  // or would be it recreating old solution? (function in function in another way?)
+		hashList = append(hashList, k) // it always will be randomized, so
+		// hashList = hashLists // <-- 2. Creating sorting function is manadotory to keep solving problem of defining neighbours.
+	}
+
+	i := 0 // <- to go from one hash to another in sorted order.
 	for k, v := range hashMap {
-		for nk, nv := range hashMap {
-			resX := v[0][0] - nv[0][0]
+		i++ 
+		if 
+		resMap[hashList[i]] = append(resMap[hashList[i]], )
+	}
+
+	return hashList
+}
+
+/*
+Problems: - O(N^2) difficulty. I check neighbours too much. I can check Neighbour A for neighbour B and then Neihbour B for neighbour A
+- Too much operations. I should somehow just check only one step further from my distant hash and dont check others.
+- map[0][0] - is very fragile, I should somehow create structure to prevent a panic (if value in key would be empty or smthng other)
+*/
+// I writed this function to save output once and forever (the data of neighbours for one hash) into database from which I could take information of what neighbouring cells users can see depending on his location (that saved in hash)
+func OldHashNeighboursForAll(hashMap map[string][][]int) map[string][]string {
+	list := make(map[string][]string)
+
+	for k, v := range hashMap { // <-- O(N^2) loop in loop.
+		for nk, nv := range hashMap { // <-- nasty
+			resX := v[0][0] - nv[0][0] // <-- nasty
 			resY := v[0][1] - nv[0][1]
 
-			res := resX + resY
-
-			if res == 4 || res == 2 || res == 0 || res == -2 || res == -4 { // Здесь что-то не так.
+			if (resX == 2 || resX == -2 || resX == 0) && (resY == 2 || resY == -2 || resY == 0) && k != nk { // <-- idk, seems somewhat normal, I dont see alternatives.
 				list[k] = append(list[k], nk)
 			}
-			// if resX == 2 || resX == -2 {}
-
-			listOfHashes := make([][][]int, 0, 1000)
-			listOfHashes = append(listOfHashes, v)
-			// for k, v := range hashMap {
-			// 	// fmt.Println(k, v[0])
-			// }
 		}
 	}
-	fmt.Println(list)
-	// First Object - ishodnie coordy, dlya kotorih ishu sosedei
-	// Second Object - dannye hashi sosedei, budu brat' pervie cordy from all hashes.
 
-	return []string{"hello", "world"}
+	return list
 }
+
+/*
+	1. Neighbours of hashes can be saved in some map and neigbours can be save to some list of a user (he saves the list of his neighbours),
+	   but when he switches his position ang geohash automatically will be made operation that gives to his list new neighbours.
+	2.
+*/
 
 // Сначала нужно было бы написать функцию которая бы сортировала мапу и копировала её в отдельный лист.
