@@ -27,7 +27,8 @@ func main() {
 	for y := range Area.length {
 		for x := range Area.width {
 			// hash := HashCoords(y, x, Area.width, Area.length, 3)
-			hash := HashCoords(y, x, Area.width, Area.length, 3)
+			hashrune, _ := GetHashFromCoords(y, x, Area.width, Area.length, 3)
+			hash := string(hashrune)
 			// hashMap[hash] = append(hashMap[hash], strconv.Itoa(x)+"|"+strconv.Itoa(y))
 			hashMap[hash] = append(hashMap[hash], []int{x, y}) // []int{x, y} искал как сделать(сначала в голове далее в инете, нужно было в обсидиане) достаточно долго.
 		}
