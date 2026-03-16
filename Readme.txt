@@ -14,3 +14,23 @@ Nearby Project
 
 	User.go
 		- Файл для логики, связанной с пользователем. В текущей версии пуст.
+
+Git:
+	- feat(optional): description
+		-- Adding or updating feature
+	- fix(optional): description
+	  	-- Fixing bugs
+	- refactor(refactoredCode): description
+		-- Refactoring or optimizing the code
+	- docs: description
+		-- Updating docs
+	- test: description
+		-- adding or updating tests
+	- chore: description
+		-- 
+
+	Preferable formating:
+		header: type(optional): description
+		detailed-description: additional description
+		Breaking-Change: / !correlation with main branch
+

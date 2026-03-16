@@ -63,10 +63,12 @@ func GetCoordsFromHash(hash []rune, options map[string]int) {
 		x: options["areaWidth"],
 		y: options["areaLength"],
 	}
+	finX := 0
+	finY := 0
 
 	for i := 0; i <= options["presicion"]; i++ {
 		// There I need to play with iterations again
-		iteration := searchScope.x / 2
+		iteration := ((searchScope.x + searchScope.y) / 2) / 2
 		switch {
 		case hash[i] == 'a':
 			searchScope.x -= iteration
