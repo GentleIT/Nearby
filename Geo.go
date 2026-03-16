@@ -1,5 +1,10 @@
 package main
 
+import (
+	"fmt"
+	"math"
+)
+
 const (
 	upperLeft  = 'a'
 	upperRight = 'b'
@@ -7,14 +12,12 @@ const (
 	downRight  = 'd'
 )
 
-func GetHashFromCoords(y, x int, width, length int, precision int) ([]rune, map[string]int) {
-	// hash := "" // <-- I can make it array with capacity of 6 or more, depending on precision
+func GetHashFromCoords(x, y int, width, length int, precision int) ([]rune, map[string]int) {
 	hash := make([]rune, 0, precision)
-	// hashSlice := make([]string, 0, precision)
+
 	options := make(map[string]int)
 	options["areaWidth"], options["areaLength"], options["precision"] = width, length, precision
-	// Ошибка - стоило полировать и убрать не нужное самому а не проверять
-	// как написать лаконичнееs
+
 	midx := width / 2 // 8 8
 	midy := length / 2
 	stepX := width / 2 // Для правильного центрирования под каждую итерацияю
@@ -50,62 +53,45 @@ func GetHashFromCoords(y, x int, width, length int, precision int) ([]rune, map[
 			midy -= stepY
 		}
 	}
+	fmt.Println(midx, midy)
 	return hash, options
 }
 
-func GetCoordsFromHash(hash []rune, options map[string]int) {
-	// Maybe there I need to scale the logic and turn the "sides" (upperLeft, upperRight, etc...) into some arrayyyy?? Idk why,
-	// but maybe in future I would have to add new runes for hash instead of 4 (a, b, c, d) or idk. My sleepy mind dont really know
-	searchScope := struct {
-		x int
-		y int
-	}{
-		x: options["areaWidth"],
-		y: options["areaLength"],
-	}
-	finX := 0
-	finY := 0
+func FindHashNeighbours(user User, options map[string]int) []string {
+	// var neighbours [][]rune
 
-	for i := 0; i <= options["presicion"]; i++ {
-		// There I need to play with iterations again
-		iteration := ((searchScope.x + searchScope.y) / 2) / 2
-		switch {
-		case hash[i] == 'a':
-			searchScope.x -= iteration
-			searchScope.y -= iteration
-		case hash[i] == 'b':
-		case hash[i] == 'c':
-		case hash[i] == 'd':
-		}
-	}
-}
+	mapWidth := options["width"]
+	mapLength := options["length"]
+	cellX, cellY := GetCell(options)
 
-// This function should be optimized version for calculating the neighbours of hash (hash of User) without using saved tables.
-func NewHashNeighboursForAll(hashMap map[string][][]int) []string {
-	resMap := make(map[string][]string)
-	hashList := make([]string, 0, len(hashMap)) // <-- 1. Should I change the data type from []string to f.e. [][]string? To put inside values of hash keys
-	for k := range hashMap {                    // or would be it recreating old solution? (function in function in another way?)
-		hashList = append(hashList, k) // it always will be randomized, so
-		// hashList = hashLists // <-- 2. Creating sorting function is manadotory to keep solving problem of defining neighbours.
+	if user.position.x > mapWidth-(mapWidth-cellX) && user.position.x < mapWidth-cellX {
+		// Find 8 neighbours for user
+	} else {
+		// Find 5 neighbours for user position on border /or/ Find 3 neighbours for user position on edge
+	}
+	// Do I really have to write 2 similar logics for different axis?
+	if user.position.y > mapLength-(mapLength-cellY) && user.position.y < mapLength-cellY {
+
+	} else {
+
 	}
 
-	i := 0 // <- to go from one hash to another in sorted order.
-	for k, v := range hashMap {
-		i++
-		k = k
-		v = v
-		resMap[hashList[i]] = append(resMap[hashList[i]])
-	}
-
-	return hashList
-}
-
-/*
-Идея: получить позицию текущую у юзера и сделать 8 шагов вдаль от текущей позиции. С этого получить 8 координат, и
-с помощью поиска хеша узнать хеш-ную строку этих 8-ми координат. Так в целом можно узнать хешные соседи текущего хеша пользователя.
-*/
-func FindHashNeighbours() []string {
 	return []string{}
+}
+
+func GetCell(options map[string]int) (int, int) {
+	cell := struct {
+		x byte
+		y byte
+	}{}
+	mapWidth := float64(options["width"]) // Intently saved it in another variable
+	mapLength := float64(options["length"])
+	precision := float64(options["precision"])
+
+	cell.x = byte(mapWidth / math.Pow(2, precision))
+	cell.y = byte(mapLength / math.Pow(2, precision))
+
+	return int(cell.x), int(cell.y)
 }
 
 /*
@@ -131,10 +117,38 @@ func HashNeighboursForAll(hashMap map[string][][]int) map[string][]string {
 	return list
 }
 
-/*
-	1. Neighbours of hashes can be saved in some map and neigbours can be save to some list of a user (he saves the list of his neighbours),
-	   but when he switches his position ang geohash automatically will be made operation that gives to his list new neighbours.
-	2.
-*/
+// This function seems like working not quite right, need to test
+// Can be useful in future after refactoring
+func GetCoordsFromHash(hash []rune, options map[string]int) {
+	searchScope := struct {
+		x int
+		y int
+	}{
+		x: options["areaWidth"],
+		y: options["areaLength"],
+	}
+	stepX := searchScope.x / 2 // iteration
+	stepY := searchScope.y / 2
+	searchScope.x /= 2
+	searchScope.y /= 2
 
-// Сначала нужно было бы написать функцию которая бы сортировала мапу и копировала её в отдельный лист.
+	for i := 0; i < options["precision"]; i++ {
+		stepX /= 2
+		stepY /= 2
+		switch {
+		case hash[i] == 'a':
+			searchScope.x -= stepX
+			searchScope.y += stepY
+		case hash[i] == 'b':
+			searchScope.x += stepX
+			searchScope.y += stepY
+		case hash[i] == 'c':
+			searchScope.x -= stepX
+			searchScope.y -= stepY
+		case hash[i] == 'd':
+			searchScope.x += stepX
+			searchScope.y -= stepY
+		}
+	}
+	fmt.Println(searchScope)
+}
