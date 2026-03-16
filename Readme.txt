@@ -27,7 +27,7 @@ Git:
 	- test: description
 		-- adding or updating tests
 	- chore: description
-		-- 
+		-- updating project files that dont affect the code but needed for project purity
 
 	Preferable formating:
 		header: type(optional): description
