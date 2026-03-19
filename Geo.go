@@ -53,45 +53,79 @@ func GetHashFromCoords(x, y int, width, length int, precision int) ([]rune, map[
 			midy -= stepY
 		}
 	}
-	fmt.Println(midx, midy)
+	// fmt.Println(midx, midy)
 	return hash, options
 }
 
-func FindHashNeighbours(user User, options map[string]int) []string {
+func FindHashNeighbours(user User, options map[string]int) [][]rune {
 	// var neighbours [][]rune
 
-	mapWidth := options["width"]
-	mapLength := options["length"]
+	// mapWidth := options["width"]
+	// mapLength := options["length"]
+	// cellX, cellY :=
+
+	// Find 8 coords and then check with loop for -values (below zero). Check only +values.
+	// 1. Check left/right, up-down
+	// 2. Store all of the 8 coords in array
+	// 3. Check and remove the ones with either -x or -y values.
+
+	hashList := make([][]rune, 0, 8)
 	cellX, cellY := GetCell(options)
 
-	if user.position.x > mapWidth-(mapWidth-cellX) && user.position.x < mapWidth-cellX {
-		// Find 8 neighbours for user
-	} else {
-		// Find 5 neighbours for user position on border /or/ Find 3 neighbours for user position on edge
+	xList := []rune{-cellX, 0, +cellX, -cellX, +cellX, -cellX, 0, +cellX}
+	yList := []rune{+cellY, +cellY, +cellY, 0, 0, -cellY, -cellY, -cellY}
+
+	storedCoords := make([][]rune, 0, 8)
+	// To get all 8 possible neighbours
+	for i := 0; i < cap(storedCoords); i++ {
+		x := user.position.x - xList[i]
+		y := user.position.y - yList[i]
+
+		storedCoords = append(storedCoords, []rune{x, y})
 	}
-	// Do I really have to write 2 similar logics for different axis?
-	if user.position.y > mapLength-(mapLength-cellY) && user.position.y < mapLength-cellY {
 
-	} else {
-
+	// To hash 8 possible coords that are neighbours to user
+	for _, coord := range storedCoords {
+		// For cases when neighbour coords go beyond map borders.
+		if coord[0] < 0 || coord[1] < 0 {
+			continue
+		}
+		hash, _ := GetHashFromCoords(int(coord[0]), int(coord[1]), options["areaWidth"], options["areaLength"], options["precision"])
+		hashList = append(hashList, hash)
 	}
+	return hashList
+	// needed ouput: array with 8 coords [x, y]x8
 
-	return []string{}
+	// Another check option
+	// if user.position.x > mapWidth-(mapWidth-cellX) && user.position.x < mapWidth-cellX { // Take the arrangement of positions that can have 8 neighbours
+
+	// } else { // Find 5 neighbours for user position on border /or/ Find 3 neighbours for user position on edge
+
+	// }
+	// // Do I really have to write 2 similar logics for different axis?
+	// if user.position.y > mapLength-(mapLength-cellY) && user.position.y < mapLength-cellY {
+
+	// } else {
+
+	// }
+
+	// return []string{}
 }
 
-func GetCell(options map[string]int) (int, int) {
+// CellSize: XxY(map): XxY(cell) | 16x16: 2x2 | 32x32: 4x4 | 64x64: 8x8 | 128x128: 16x16 | ...
+func GetCell(options map[string]int) (rune, rune) {
 	cell := struct {
-		x byte
-		y byte
+		x rune
+		y rune
 	}{}
-	mapWidth := float64(options["width"]) // Intently saved it in another variable
-	mapLength := float64(options["length"])
+	mapWidth := float64(options["areaWidth"]) // Intently saved it in another variable
+	mapLength := float64(options["areaLength"])
 	precision := float64(options["precision"])
 
-	cell.x = byte(mapWidth / math.Pow(2, precision))
-	cell.y = byte(mapLength / math.Pow(2, precision))
+	cell.x = rune(mapWidth / math.Pow(2, precision))
+	cell.y = rune(mapLength / math.Pow(2, precision))
 
-	return int(cell.x), int(cell.y)
+	return cell.x, cell.y
 }
 
 /*

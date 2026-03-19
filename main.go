@@ -23,16 +23,20 @@ func main() {
 		length: 16,
 	}
 
-	// user := User{
-	// 	name: "Edward",
-	// 	position: Position{
-	// 		x: 5,
-	// 		y: 2,
-	// 	},
-	// }
+	user := User{
+		name: "Edward",
+		position: Position{
+			x: 0,
+			y: 0,
+		},
+	}
 
-	hash, options := GetHashFromCoords(100, 0, Area.width, Area.length, 3)
+	hash, options := GetHashFromCoords(int(user.position.x), int(user.position.y), Area.width, Area.length, 3)
 	fmt.Println(string(hash), options)
+	hashl := FindHashNeighbours(user, options)
+	for i := range hashl {
+		fmt.Printf("%v | ", string(hashl[i]))
+	}
 
 	// fmt.Println(string(hash))
 
@@ -53,5 +57,5 @@ func main() {
 	// 	FindNeighborsForHash(hashMap, []int{1, 2, 3})
 	// }
 	// fmt.Println(HashNeighboursForAll(hashMap))
-	fmt.Println(time.Since(timeStart))
+	fmt.Printf("\n%v", time.Since(timeStart))
 }

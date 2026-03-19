@@ -1,8 +1,8 @@
 package main
 
 type Position struct {
-	x int
-	y int
+	x rune
+	y rune
 }
 
 type User struct {
