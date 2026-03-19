@@ -67,10 +67,15 @@ func FindHashNeighbours(user User, options map[string]int) [][]rune {
 	// 3. Check and remove the ones with either -x or -y values and then hash them.
 
 	hashList := make([][]rune, 0, 8)
+
+	areaWidth := options["areaWidth"]
+	areaLength := options["areaLength"]
+	precision := options["precision"]
+
 	cellX, cellY := GetCell(options)
 
-	xList := []rune{-cellX, 0, +cellX, -cellX, +cellX, -cellX, 0, +cellX}
-	yList := []rune{+cellY, +cellY, +cellY, 0, 0, -cellY, -cellY, -cellY}
+	xList := []rune{-cellX, 0, +cellX, -cellX, +cellX, -cellX, 0, +cellX} // <====
+	yList := []rune{+cellY, +cellY, +cellY, 0, 0, -cellY, -cellY, -cellY} // <====
 
 	storedCoords := make([][]rune, 0, 8)
 	// To get all 8 possible neighbours
@@ -84,10 +89,10 @@ func FindHashNeighbours(user User, options map[string]int) [][]rune {
 	// To hash 8 possible coords that are neighbours to user
 	for _, coord := range storedCoords {
 		// For cases when neighbour coords go beyond map borders.
-		if coord[0] < 0 || coord[1] < 0 {
+		if coord[0] < 0 || coord[1] < 0 || coord[0] > rune(areaWidth) || coord[1] > rune(areaLength) {
 			continue
 		}
-		hash, _ := GetHashFromCoords(int(coord[0]), int(coord[1]), options["areaWidth"], options["areaLength"], options["precision"])
+		hash, _ := GetHashFromCoords(int(coord[0]), int(coord[1]), areaWidth, areaLength, precision)
 		hashList = append(hashList, hash)
 	}
 	return hashList
