@@ -12,6 +12,8 @@ const (
 	downRight  = 'd'
 )
 
+// Bad commentation and english
+// To hash the coords. Gives a "cell" name.
 func GetHashFromCoords(x, y int, width, length int, precision int) ([]rune, map[string]int) {
 	hash := make([]rune, 0, precision)
 
@@ -20,7 +22,7 @@ func GetHashFromCoords(x, y int, width, length int, precision int) ([]rune, map[
 
 	midx := width / 2 // 8 8
 	midy := length / 2
-	stepX := width / 2 // Для правильного центрирования под каждую итерацияю
+	stepX := width / 2 // iterations
 	stepY := length / 2
 
 	for i := 1; i <= precision; i++ {
@@ -53,21 +55,16 @@ func GetHashFromCoords(x, y int, width, length int, precision int) ([]rune, map[
 			midy -= stepY
 		}
 	}
-	// fmt.Println(midx, midy)
+
 	return hash, options
 }
 
+// Finds and gives an array of neighbouring hashes.
 func FindHashNeighbours(user User, options map[string]int) [][]rune {
-	// var neighbours [][]rune
-
-	// mapWidth := options["width"]
-	// mapLength := options["length"]
-	// cellX, cellY :=
-
 	// Find 8 coords and then check with loop for -values (below zero). Check only +values.
 	// 1. Check left/right, up-down
 	// 2. Store all of the 8 coords in array
-	// 3. Check and remove the ones with either -x or -y values.
+	// 3. Check and remove the ones with either -x or -y values and then hash them.
 
 	hashList := make([][]rune, 0, 8)
 	cellX, cellY := GetCell(options)
@@ -94,22 +91,6 @@ func FindHashNeighbours(user User, options map[string]int) [][]rune {
 		hashList = append(hashList, hash)
 	}
 	return hashList
-	// needed ouput: array with 8 coords [x, y]x8
-
-	// Another check option
-	// if user.position.x > mapWidth-(mapWidth-cellX) && user.position.x < mapWidth-cellX { // Take the arrangement of positions that can have 8 neighbours
-
-	// } else { // Find 5 neighbours for user position on border /or/ Find 3 neighbours for user position on edge
-
-	// }
-	// // Do I really have to write 2 similar logics for different axis?
-	// if user.position.y > mapLength-(mapLength-cellY) && user.position.y < mapLength-cellY {
-
-	// } else {
-
-	// }
-
-	// return []string{}
 }
 
 // CellSize: XxY(map): XxY(cell) | 16x16: 2x2 | 32x32: 4x4 | 64x64: 8x8 | 128x128: 16x16 | ...
