@@ -12,24 +12,34 @@ const (
 	downRight  = 'd'
 )
 
+type Options struct {
+	areaWidth  float64
+	areaLength float64
+	precision  uint8
+}
+
 // Bad commentation and english
 // To hash the coords. Gives a "cell" name.
-func GetHashFromCoords(x, y int, width, length int, precision int) ([]rune, map[string]int) {
+func GetHashFromCoords(x, y float64, width, length float64, precision uint8) ([]rune, Options) {
+
 	hash := make([]rune, 0, precision)
 
-	options := make(map[string]int)
-	options["areaWidth"], options["areaLength"], options["precision"] = width, length, precision
+	options := Options{
+		areaWidth:  width,
+		areaLength: length,
+		precision:  precision,
+	}
 
 	midx := width / 2 // 8 8
 	midy := length / 2
 	stepX := width / 2 // iterations
 	stepY := length / 2
 
-	for i := 1; i <= precision; i++ {
+	for i := uint8(1); i <= precision; i++ {
 		isRight := x-midx >= 0
 		isUp := y-midy >= 0
 
-		stepX /= 2
+		stepX /= 2 // <=========--------- Shall I devide it to cellX so that it would get more precise? Or am I tripping?
 		stepY /= 2
 
 		switch {
@@ -59,57 +69,70 @@ func GetHashFromCoords(x, y int, width, length int, precision int) ([]rune, map[
 	return hash, options
 }
 
+/*
+	To-do:
+		1. Fix the problems with types
+		2. Check for allocations
+		3. Possible problem with user position
+*/
+
 // Finds and gives an array of neighbouring hashes.
-func FindHashNeighbours(user User, options map[string]int) [][]rune {
+func FindHashNeighbours(user User, options Options) [][]rune {
 	// Find 8 coords and then check with loop for -values (below zero). Check only +values.
 	// 1. Check left/right, up-down
 	// 2. Store all of the 8 coords in array
 	// 3. Check and remove the ones with either -x or -y values and then hash them.
 
 	hashList := make([][]rune, 0, 8)
+	storedCoords := make([][]float64, 0, 8)
 
-	areaWidth := options["areaWidth"]
-	areaLength := options["areaLength"]
-	precision := options["precision"]
+	areaWidth := options.areaWidth
+	areaLength := options.areaLength
+	precision := options.precision
 
 	cellX, cellY := GetCell(options)
+	fmt.Println("Cells: ", cellX, cellY)
+	xList := []float64{-cellX, 0, +cellX, -cellX, +cellX, -cellX, 0, +cellX} // <====
+	yList := []float64{+cellY, +cellY, +cellY, 0, 0, -cellY, -cellY, -cellY} // <====
 
-	xList := []rune{-cellX, 0, +cellX, -cellX, +cellX, -cellX, 0, +cellX} // <====
-	yList := []rune{+cellY, +cellY, +cellY, 0, 0, -cellY, -cellY, -cellY} // <====
+	/*
+		Recent Problems:
+			- Rays: Logic can break if "rays" start from wrong coords. For example, x:15,y:15 is top-right of bbb. If cell is 1.875 and not 2 then rays would never meet other hash zones.
+			- Cell: Should I really allow the float cell values? I mean, it may be wrong in some cases. Or... I dont really know..
+	*/
 
-	storedCoords := make([][]rune, 0, 8)
 	// To get all 8 possible neighbours
 	for i := 0; i < cap(storedCoords); i++ {
-		x := user.position.x - xList[i]
-		y := user.position.y - yList[i]
+		x := float64(user.position.x) - xList[i]
+		y := float64(user.position.y) - yList[i]
 
-		storedCoords = append(storedCoords, []rune{x, y})
+		storedCoords = append(storedCoords, []float64{x, y})
 	}
 
 	// To hash 8 possible coords that are neighbours to user
 	for _, coord := range storedCoords {
 		// For cases when neighbour coords go beyond map borders.
-		if coord[0] < 0 || coord[1] < 0 || coord[0] > rune(areaWidth) || coord[1] > rune(areaLength) {
+		if coord[0] < 0 || coord[1] < 0 || coord[0] > areaWidth || coord[1] > areaLength {
 			continue
 		}
-		hash, _ := GetHashFromCoords(int(coord[0]), int(coord[1]), areaWidth, areaLength, precision)
+		hash, _ := GetHashFromCoords(coord[0], coord[1], areaWidth, areaLength, precision)
 		hashList = append(hashList, hash)
 	}
 	return hashList
 }
 
 // CellSize: XxY(map): XxY(cell) | 16x16: 2x2 | 32x32: 4x4 | 64x64: 8x8 | 128x128: 16x16 | ...
-func GetCell(options map[string]int) (rune, rune) {
+func GetCell(options Options) (float64, float64) {
 	cell := struct {
-		x rune
-		y rune
+		x float64
+		y float64
 	}{}
-	mapWidth := float64(options["areaWidth"]) // Intently saved it in another variable
-	mapLength := float64(options["areaLength"])
-	precision := float64(options["precision"])
+	mapWidth := float64(options.areaWidth) // Intently saved it in another variable
+	mapLength := float64(options.areaLength)
+	precision := float64(options.precision)
 
-	cell.x = rune(mapWidth / math.Pow(2, precision))
-	cell.y = rune(mapLength / math.Pow(2, precision))
+	cell.x = mapWidth / math.Pow(2, precision)
+	cell.y = mapLength / math.Pow(2, precision)
 
 	return cell.x, cell.y
 }
