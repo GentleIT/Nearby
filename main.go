@@ -35,5 +35,31 @@ func main() {
 		fmt.Printf("%v | ", string(hashN[i]))
 	}
 
+	user.CreatePost("Hello, World!")
+	user.CreatePost("Hello, World!!!!!")
+	fmt.Println(StoreOfPosts())
+
+	// To get time of process
 	fmt.Printf("\n%v", time.Since(timeStart))
 }
+
+/*
+	Message for myself: (09.04)
+		- User.hash
+			= It should somehow recheck its hash every 5 seconds
+		- Posts
+			= How to store them?
+*/
+
+/* Print Formating explanation (09.04.26)
+Note:
+	| - fmt from main.go
+	| -
+Print Format:
+	|Scan for x:
+	|Scan for y:
+	|hash {width_of_area, length_of_area, precision}
+
+	|neighbouring hashes
+	|time of a process
+*/
