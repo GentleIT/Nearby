@@ -8,8 +8,8 @@ import (
 func main() {
 	timeStart := time.Now()
 	Area := struct {
-		width  int
-		length int
+		width  float64
+		length float64
 	}{
 		width:  16,
 		length: 16,
@@ -23,10 +23,15 @@ func main() {
 		},
 	}
 
-	hash, options := GetHashFromCoords(int(user.position.x), int(user.position.y), Area.width, Area.length, 3)
+	fmt.Scan(&user.position.x)
+	fmt.Scan(&user.position.y)
+	// Getting the hash from the coords of users position with data of area
+	hash, options := GetHashFromCoords(user.position.x, user.position.y, Area.width, Area.length, 3)
 	fmt.Println(string(hash), options)
+	// To get slice of 1<=n<=8 neighbours from the current hash (position) of user
 	hashN := FindHashNeighbours(user, options)
 	for i := range hashN {
+		// Print all neighbours from the slice
 		fmt.Printf("%v | ", string(hashN[i]))
 	}
 
