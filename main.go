@@ -18,13 +18,13 @@ func main() {
 	user := User{
 		name: "Edward",
 		position: Position{
-			x: 0,
-			y: 0,
+			x: 2,
+			y: 2,
 		},
 	}
 
-	fmt.Scan(&user.position.x)
-	fmt.Scan(&user.position.y)
+	// fmt.Scan(&user.position.x)
+	// fmt.Scan(&user.position.y)
 	// Getting the hash from the coords of users position with data of area
 	hash, options := GetHashFromCoords(user.position.x, user.position.y, Area.width, Area.length, 3)
 	fmt.Println(string(hash), options)
@@ -37,7 +37,7 @@ func main() {
 
 	user.CreatePost("Hello, World!")
 	user.CreatePost("Hello, World!!!!!")
-	fmt.Println(StoreOfPosts())
+	// fmt.Println(StoreOfPosts())
 
 	// To get time of process
 	fmt.Printf("\n%v", time.Since(timeStart))

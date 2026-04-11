@@ -18,22 +18,27 @@ func (u *User) CreatePost(m string) Post {
 		hash:     u.hash,
 		message:  m,
 	}
-	StoreOfPosts(&newPost)
+	// Here should be the function that sends new post to a default store of all the posts. Store should be in fact a db.
+
 	return newPost
 }
 
-// This Phrankenshtein is scary af
-func StoreOfPosts(p ...*Post) func() []Post {
-	actualPost := Post{}
-	if len(p[0].message) > 0 {
-		actualPost = *p[0]
-	}
-	postSlice := make([]Post, 0, 10)
-	return func() []Post {
-		postSlice = append(postSlice, actualPost)
-		return postSlice
-	}
+func SendPostToDb(p *Post) {
+
 }
+
+// This Phrankenshtein is scary af
+// func StoreOfPosts(p ...Post) func() []Post {
+// 	actualPost := Post{}
+// 	if len(p[0].message) > 0 {
+// 		actualPost = p[0]
+// 	}
+// 	postSlice := make([]Post, 0, 10)
+// 	return func() []Post {
+// 		postSlice = append(postSlice, actualPost)
+// 		return postSlice
+// 	}
+// }
 
 type Post struct {
 	owner    User
