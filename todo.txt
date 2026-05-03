@@ -1,0 +1,11 @@
+db
+    1. Somehow Send Post data to database - O
+    2. Somehow get data from posts table
+
+Problems:
+    Geo.go
+        - I need to store hash in String format and not in rune[], because it's too troublesome.
+        - Unoptimized indHashNeighbours()
+            -- O(N^2) format
+            -- some bugs
+                --- user can be in border coords and neighbours can be wrong 
