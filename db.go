@@ -20,6 +20,11 @@ func ConnectToDB() *sql.DB {
 	return db
 }
 
-// func SendPostToDb() {
-
-// }
+func SendPostToDb(db *sql.DB, post *Post) {
+	query := "INSERT INTO posts (hash, owner_name, title, content) VALUES ($1, $2, $3, $4) RETURNING id"
+	v, err := db.Exec(query, post.hash, post.owner.name, post.title, post.content)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(v)
+}
