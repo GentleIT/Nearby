@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type Position struct {
 	x float64
 	y float64
@@ -7,24 +9,37 @@ type Position struct {
 
 type User struct {
 	name     string
-	position Position
-	hash     []rune // All users while walking should
+	position Position // should be not null
+	hash     string   // All users while walking should // hash can be like this: always GetHashFromCoords(Position...)
 }
 
-func (u *User) CreatePost(m string) Post {
+type Userr struct {
+	name     string
+	position Position // should be not null
+	hash     []rune   // All users while walking should // hash can be like this: always GetHashFromCoords(Position...)
+}
+
+type Post struct { // data types <--
+	// hash     []rune
+	hash     string
+	owner    User
+	position Position
+	title    string
+	content  string
+}
+
+// id, hash, created_at(From Postgre), owner_name, title, content
+func (u *User) CreatePost(m string) *Post {
 	newPost := Post{
+		hash:     u.hash,
 		owner:    *u,
 		position: u.position,
-		hash:     u.hash,
-		message:  m,
+		title:    fmt.Sprintf("%v''s post", u),
+		content:  m,
 	}
 	// Here should be the function that sends new post to a default store of all the posts. Store should be in fact a db.
 
-	return newPost
-}
-
-func SendPostToDb(p *Post) {
-
+	return &newPost
 }
 
 // This Phrankenshtein is scary af
@@ -39,10 +54,3 @@ func SendPostToDb(p *Post) {
 // 		return postSlice
 // 	}
 // }
-
-type Post struct {
-	owner    User
-	position Position
-	hash     []rune
-	message  string
-}
