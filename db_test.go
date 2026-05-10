@@ -5,7 +5,20 @@ import (
 	"testing"
 )
 
-func TestDb(t *testing.T) {
+func TestReadfromDb(t *testing.T) {
+	db := ConnectToDB()
+	defer db.Close()
+
+	fmt.Println("Database Ping():", db.Ping())
+
+	resp, err := GetPostsFromDb(db)
+	if err != nil {
+		fmt.Println("err with GetPostFromDb(): ", err)
+	}
+	fmt.Println(resp)
+}
+
+func TestSendtoDb(t *testing.T) {
 	db := ConnectToDB()
 	defer db.Close()
 
@@ -16,5 +29,5 @@ func TestDb(t *testing.T) {
 		hash: "aaa",
 	}
 
-	SendPostToDb(db, testuser.CreatePost("hello"))
+	SendPostToDb(testuser.CreatePost("hello"))
 }
