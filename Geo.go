@@ -18,21 +18,40 @@ type Options struct {
 	precision  uint8
 }
 
-// Bad commentation and english
-// To hash the coords. Gives a "cell" name.
-func GetHashFromCoords(x, y float64, width, length float64, precision uint8) ([]rune, Options) {
-
-	hash := make([]rune, 0, precision)
-
-	options := Options{
-		areaWidth:  width,
-		areaLength: length,
+// 11.05.26: Should I really store  them (areaWidth, areaLength, precisioN) in different data types?
+func GetOptions(areaWidth, areaLength float64, precision uint8) *Options {
+	if areaWidth == 0 && areaLength == 0 && precision == 0 {
+		return &Options{
+			areaWidth:  16,
+			areaLength: 16,
+			precision:  3,
+		}
+	}
+	return &Options{
+		areaWidth:  areaWidth,
+		areaLength: areaLength,
 		precision:  precision,
 	}
+}
 
-	midx := width / 2 // 8 8
+// Bad commentation and english
+// To hash the coords. Gives a "cell" name.
+/*11.05.26: parametrs: (position Position, options Options) -- I should store options somewhere and only give it to this function, not get it*/
+//11.05.26: func GetHashFromCoords(x, y float64, width, length float64, precision uint8) ([]rune, Options) {
+func GetHashFromCoords(position Position, options *Options) string {
+	width := options.areaWidth
+	length := options.areaLength
+	precision := options.precision
+
+	x, y := position.x, position.y
+
+	hash := make([]rune, 0, precision+1)
+
+	midx := width / 2
 	midy := length / 2
-	stepX := width / 2 // iterations
+
+	// iterations
+	stepX := width / 2
 	stepY := length / 2
 
 	for i := uint8(1); i <= precision; i++ {
@@ -43,30 +62,26 @@ func GetHashFromCoords(x, y float64, width, length float64, precision uint8) ([]
 		stepY /= 2
 
 		switch {
-		case !isRight && isUp: // left / on line && up
-			// hash += upperLeft
+		case !isRight && isUp:
 			hash = append(hash, upperLeft)
 			midx -= stepX
 			midy += stepY
-		case isRight && isUp: // on right && up
-			// hash += upperRight
+		case isRight && isUp:
 			hash = append(hash, upperRight)
 			midx += stepX
 			midy += stepY
-		case !isRight && !isUp: // left / on line && down / on line
-			// hash += downLeft
+		case !isRight && !isUp:
 			hash = append(hash, downLeft)
 			midx -= stepX
 			midy -= stepY
-		case isRight && !isUp: // right && on line / down
-			// hash += downRight
+		case isRight && !isUp:
 			hash = append(hash, downRight)
 			midx += stepX
 			midy -= stepY
 		}
 	}
 
-	return hash, options
+	return string(hash)
 }
 
 /*
@@ -77,18 +92,18 @@ func GetHashFromCoords(x, y float64, width, length float64, precision uint8) ([]
 */
 
 // Finds and gives an array of neighbouring hashes.
-func FindHashNeighbours(user User, options Options) [][]rune {
+func FindHashNeighbours(user User, options *Options) []string { // hash should be in string format
 	// Find 8 coords and then check with loop for -values (below zero). Check only +values.
 	// 1. Check left/right, up-down
 	// 2. Store all of the 8 coords in array
 	// 3. Check and remove the ones with either -x or -y values and then hash them.
 
-	hashList := make([][]rune, 0, 8)
+	hashList := make([]string, 0, 8)
 	storedCoords := make([][]float64, 0, 8)
 
 	areaWidth := options.areaWidth
 	areaLength := options.areaLength
-	precision := options.precision
+	// precision := options.precision
 
 	cellX, cellY := GetCell(options)
 	fmt.Println("Cells: ", cellX, cellY)
@@ -115,18 +130,20 @@ func FindHashNeighbours(user User, options Options) [][]rune {
 		if coord[0] < 0 || coord[1] < 0 || coord[0] > areaWidth || coord[1] > areaLength {
 			continue
 		}
-		hash, _ := GetHashFromCoords(coord[0], coord[1], areaWidth, areaLength, precision)
+		hash := GetHashFromCoords(Position{x: coord[0], y: coord[1]}, options)
 		hashList = append(hashList, hash)
 	}
 	return hashList
 }
 
 // CellSize: XxY(map): XxY(cell) | 16x16: 2x2 | 32x32: 4x4 | 64x64: 8x8 | 128x128: 16x16 | ...
-func GetCell(options Options) (float64, float64) {
+// Returns the size of cell needed to define inner borders
+func GetCell(options *Options) (float64, float64) {
 	cell := struct {
 		x float64
 		y float64
 	}{}
+
 	mapWidth := float64(options.areaWidth) // Intently saved it in another variable
 	mapLength := float64(options.areaLength)
 	precision := float64(options.precision)

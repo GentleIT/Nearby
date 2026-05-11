@@ -23,14 +23,14 @@ func TestHashNeighbours(t *testing.T) {
 		},
 	}
 
-	_, options := GetHashFromCoords(0, 0, Area.width, Area.length, 3)
+	options := GetOptions(0, 0, 0)
 
 	for ix := 0.0; ix <= Area.width; ix++ {
 		for iy := 0.0; iy <= Area.length; iy++ {
 			user.position.x = ix
 			user.position.y = iy
 
-			hash, _ := GetHashFromCoords(user.position.x, user.position.y, options.areaWidth, options.areaLength, 3)
+			hash := GetHashFromCoords(user.position, options)
 			neisRune := FindHashNeighbours(user, options)
 			neisString := make([]string, 0, 8)
 			for _, neis := range neisRune {
