@@ -38,7 +38,8 @@ func GetOptions(areaWidth, areaLength float64, precision uint8) *Options {
 // To hash the coords. Gives a "cell" name.
 /*11.05.26: parametrs: (position Position, options Options) -- I should store options somewhere and only give it to this function, not get it*/
 //11.05.26: func GetHashFromCoords(x, y float64, width, length float64, precision uint8) ([]rune, Options) {
-func GetHashFromCoords(position Position, options *Options) string {
+func (options *Options) GetHashFromCoords(position Position) string {
+
 	width := options.areaWidth
 	length := options.areaLength
 	precision := options.precision
@@ -91,8 +92,10 @@ func GetHashFromCoords(position Position, options *Options) string {
 		3. Possible problem with user position
 */
 
+// 15.05.26 commentary: Maybe I use too complicated version and rather need to ponder about offset with bytes or some other
+// mathemathical method, but I'm fine with this version at the moment.
 // Finds and gives an array of neighbouring hashes.
-func FindHashNeighbours(user User, options *Options) []string { // hash should be in string format
+func (options *Options) FindHashNeighbours(position Position) []string { // hash should be in string format
 	// Find 8 coords and then check with loop for -values (below zero). Check only +values.
 	// 1. Check left/right, up-down
 	// 2. Store all of the 8 coords in array
@@ -103,35 +106,53 @@ func FindHashNeighbours(user User, options *Options) []string { // hash should b
 
 	areaWidth := options.areaWidth
 	areaLength := options.areaLength
-	// precision := options.precision
 
 	cellX, cellY := GetCell(options)
-	fmt.Println("Cells: ", cellX, cellY)
+
+	// Used only for check for duplicates: to dont put current hash in neighbouring hashes list
+	posHash := options.GetHashFromCoords(position)
+
 	xList := []float64{-cellX, 0, +cellX, -cellX, +cellX, -cellX, 0, +cellX} // <====
 	yList := []float64{+cellY, +cellY, +cellY, 0, 0, -cellY, -cellY, -cellY} // <====
 
 	/*
 		Recent Problems:
 			- Rays: Logic can break if "rays" start from wrong coords. For example, x:15,y:15 is top-right of bbb. If cell is 1.875 and not 2 then rays would never meet other hash zones.
+				(that thing that rays from center of coord to 8 directions)
 			- Cell: Should I really allow the float cell values? I mean, it may be wrong in some cases. Or... I dont really know..
 	*/
 
+	// --- 15.05.26: Can't I pass this creation of slice and just hop to the next calculating and 'hash'-ing calculated
+	// cords and then store it in hashList?
 	// To get all 8 possible neighbours
 	for i := 0; i < cap(storedCoords); i++ {
-		x := float64(user.position.x) - xList[i]
-		y := float64(user.position.y) - yList[i]
+		x := float64(position.x) - xList[i]
+		y := float64(position.y) - yList[i]
 
-		storedCoords = append(storedCoords, []float64{x, y})
+		storedCoords = append(storedCoords, []float64{x, y}) // <-- 8 allocations: 8 times I create new massive pointers.
 	}
 
 	// To hash 8 possible coords that are neighbours to user
+Outerloop:
 	for _, coord := range storedCoords {
 		// For cases when neighbour coords go beyond map borders.
 		if coord[0] < 0 || coord[1] < 0 || coord[0] > areaWidth || coord[1] > areaLength {
 			continue
 		}
-		hash := GetHashFromCoords(Position{x: coord[0], y: coord[1]}, options)
-		hashList = append(hashList, hash)
+		hash := options.GetHashFromCoords(Position{x: coord[0], y: coord[1]})
+
+		// 14.05.26: There I should check for the repeats in hashes. 15.05.26:
+		if hash != posHash {
+			for _, sthash := range hashList {
+				if hash == posHash || hash == sthash {
+					// fmt.Println("Duplicate: ", hash, " of ", posHash)
+					continue Outerloop
+				}
+			}
+			hashList = append(hashList, hash)
+		} else {
+			continue Outerloop
+		}
 	}
 	return hashList
 }
@@ -140,18 +161,18 @@ func FindHashNeighbours(user User, options *Options) []string { // hash should b
 // Returns the size of cell needed to define inner borders
 func GetCell(options *Options) (float64, float64) {
 	cell := struct {
-		x float64
-		y float64
+		x int
+		y int
 	}{}
 
-	mapWidth := float64(options.areaWidth) // Intently saved it in another variable
-	mapLength := float64(options.areaLength)
-	precision := float64(options.precision)
+	mapWidth := options.areaWidth // Intently saved it in another variable
+	mapLength := options.areaLength
+	precision := float64(options.precision) // Turned with float64() because of math.Pow() down here
 
-	cell.x = mapWidth / math.Pow(2, precision)
-	cell.y = mapLength / math.Pow(2, precision)
+	cell.x = int(mapWidth / math.Pow(2, precision))
+	cell.y = int(mapLength / math.Pow(2, precision))
 
-	return cell.x, cell.y
+	return float64(cell.x), float64(cell.y)
 }
 
 /*

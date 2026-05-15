@@ -3,9 +3,12 @@ package main
 import (
 	"fmt"
 	"testing"
+	"time"
 )
 
 func TestHashNeighbours(t *testing.T) {
+	timeStart := time.Now()
+
 	Area := struct {
 		width  float64
 		length float64
@@ -30,15 +33,16 @@ func TestHashNeighbours(t *testing.T) {
 			user.position.x = ix
 			user.position.y = iy
 
-			hash := GetHashFromCoords(user.position, options)
-			neisRune := FindHashNeighbours(user, options)
+			hash := options.GetHashFromCoords(user.position)
+			neisRune := options.FindHashNeighbours(user.position)
 			neisString := make([]string, 0, 8)
 			for _, neis := range neisRune {
 				neisString = append(neisString, string(neis))
 			}
-			fmt.Printf("Find: x:%v, y: %v | hash: %v, neis: %v\n", user.position.x, user.position.y, string(hash), neisString)
+			fmt.Printf("Find: x: %v, y: %v | hash: %v, neis: %v\n", user.position.x, user.position.y, string(hash), neisString)
 		}
 	}
+	fmt.Println(time.Since(timeStart).Seconds())
 }
 
 /*

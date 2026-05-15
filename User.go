@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 )
 
@@ -25,20 +24,6 @@ type Post struct { // data types <--
 	owner      string
 	title      string
 	content    string
-}
-
-// id, hash, created_at(From Postgre), owner_name, title, content
-func (u *User) CreatePost(m string) *Post {
-	newPost := Post{
-		hash:    u.hash,
-		owner:   u.name,
-		title:   fmt.Sprintf("%v''s post", u.name),
-		content: m,
-	}
-	// Here should be the function that sends new post to a default store of all the posts. Store should be in fact a db.
-
-	SendPostToDb(&newPost)
-	return &newPost
 }
 
 // This Phrankenshtein is scary af
