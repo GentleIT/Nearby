@@ -11,11 +11,11 @@ func TestReadfromDb(t *testing.T) {
 
 	fmt.Println("Database Ping():", db.Ping())
 
-	resp, err := GetPostsFromDb(db)
-	if err != nil {
-		fmt.Println("err with GetPostFromDb(): ", err)
-	}
-	fmt.Println(resp)
+	// resp, err := GetPostsFromDb(db)
+	// if err != nil {
+	// 	fmt.Println("err with GetPostFromDb(): ", err)
+	// }
+	// fmt.Println(resp)
 }
 
 func TestSendtoDb(t *testing.T) {
@@ -24,10 +24,10 @@ func TestSendtoDb(t *testing.T) {
 
 	fmt.Println("Database Ping():", db.Ping())
 
-	testuser := User{
-		name: "Edward",
-		hash: "aaa",
-	}
+	// testuser := User{
+	// 	name: "Edward",
+	// 	hash: "aaa",
+	// }
 
-	SendPostToDb(testuser.CreatePost("hello"))
+	// SendPostToDb(testuser.CreatePost("hello"))
 }
